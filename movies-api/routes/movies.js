@@ -1,4 +1,5 @@
 const express = require('express');
+const passport = require('passport');
 const MoviesService = require('../services/movies');
 
 const {
@@ -15,13 +16,16 @@ const {
   SIXTY_MINUTES_IN_SECONDS
 } = require('../utils/time');
 
+//JWT Strategi para proteger nuestras rutas
+require('../utils/auth/strategies/jwt');
+
 function moviesApi(app) {
   const router = express.Router();
   app.use('/api/movies', router);
 
   const moviesService = new MoviesService();
 
-  router.get('/', async function(req, res, next) {
+  router.get('/', passport.authenticate('jwt', { session: false }), async function(req, res, next) {
     cacheResponse(res, FIVE_MINUTES_IN_SECONDS);
     const { tags } = req.query;
 
@@ -38,7 +42,8 @@ function moviesApi(app) {
   });
 
   router.get(
-    '/:movieId',
+    '/:movieId', 
+    passport.authenticate('jwt', { session: false }),
     validationHandler({ movieId: movieIdSchema }, 'params'),
     async function(req, res, next) {
       cacheResponse(res, SIXTY_MINUTES_IN_SECONDS);
@@ -57,7 +62,9 @@ function moviesApi(app) {
     }
   );
 
-  router.post('/', validationHandler(createMovieSchema), async function(
+  router.post('/', 
+  passport.authenticate('jwt', { session: false }), 
+  validationHandler(createMovieSchema), async function(
     req,
     res,
     next
@@ -77,6 +84,7 @@ function moviesApi(app) {
 
   router.put(
     '/:movieId',
+    passport.authenticate('jwt', { session: false }),
     validationHandler({ movieId: movieIdSchema }, 'params'),
     validationHandler(updateMovieSchema),
     async function(req, res, next) {
@@ -101,6 +109,7 @@ function moviesApi(app) {
 
   router.delete(
     '/:movieId',
+    passport.authenticate('jwt', { session: false }),
     validationHandler({ movieId: movieIdSchema }, 'params'),
     async function(req, res, next) {
       const { movieId } = req.params;
