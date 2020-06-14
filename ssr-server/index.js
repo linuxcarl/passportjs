@@ -19,6 +19,8 @@ require("./utils/auth/strategies/basic");
 require("./utils/auth/strategies/oauth");
 // stategies google  OpenID Connect
 require("./utils/auth/strategies/google");
+// stategies with facebook
+require("./utils/auth/strategies/facebook");
 
 // Agregamos las variables de timpo en segundos
 const THIRTY_DAYS_IN_SEC = 2592000;
@@ -51,6 +53,7 @@ app.post("/auth/sign-in", async function (req, res, next) {
     }
   })(req, res, next);
 });
+
 
 app.post("/auth/sign-up", async function (req, res, next) {
   const { body: user } = req;
@@ -146,6 +149,29 @@ app.get(
 app.get(
   "/auth/google/callback",
   passport.authenticate("google", { session: false }),
+  function(req, res, next) {
+    if (!req.user) {
+      next(boom.unauthorized());
+    }
+
+    const { token, ...user } = req.user;
+
+    res.cookie("token", token, {
+      httpOnly: !config.dev,
+      secure: !config.dev
+    });
+
+    res.status(200).json(user);
+  }
+);
+//rutas para facebook
+app.get("/auth/facebook", passport.authenticate("facebook", {
+  scope: ["email", "profile", "openid"]
+}));
+
+app.get(
+  "/auth/facebook/callback",
+  passport.authenticate("facebook", { session: false }),
   function(req, res, next) {
     if (!req.user) {
       next(boom.unauthorized());
