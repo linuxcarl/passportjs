@@ -1,7 +1,6 @@
 const passport = require("passport");
 const boom = require("@hapi/boom");
 const axios = require("axios");
-const boom = require("@hapi/boom");
 const { OAuth2Strategy } = require("passport-oauth");
 
 const { config } = require("../../../config");
